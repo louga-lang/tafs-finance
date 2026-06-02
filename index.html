@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>TAFS Finance Manager</title>
+<meta name="theme-color" content="#1D9E75"/>
+<link rel="manifest" href="manifest.json"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="TAFS Finance"/>
+<style>
+/* ============================================================
+   TAFS FINANCE — CSS COMPLET
+   ============================================================ */
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g:#1D9E75;--gl:#E1F5EE;--gd:#0F6E56;--gm:#5DCAA5;
+  --a:#BA7517;--al:#FAEEDA;
+  --r:#D85A30;--rl:#FAECE7;
+  --b:#185FA5;--bl:#E6F1FB;
+  --c50:#F9FAFB;--c100:#F3F4F6;--c200:#E5E7EB;
+  --c400:#9CA3AF;--c600:#4B5563;--c800:#1F2937;
+  --sw:230px;--th:56px;
+  --rad:10px;--rads:6px;
+  --sh:0 1px 4px rgba(0,0,0,.08);
+  --shm:0 4px 16px rgba(0,0,0,.10);
+  --font:'Segoe UI',system-ui,sans-serif;
+}
+html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--c800);background:var(--c50);}
+
+/* ── UTILITAIRES ── */
+.hidden{display:none!important;}
+.flex{display:flex;}.flex-col{flex-direction:column;}
+.items-center{align-items:center;}.justify-between{justify-content:space-between;}
+.gap8{gap:8px;}.gap12{gap:12px;}
+.w100{width:100%;}
+.bold{font-weight:600;}
+.text-sm{font-size:12px;}.text-xs{font-size:11px;}
+.text-muted{color:var(--c400);}
+.text-g{color:var(--g);}.text-r{color:var(--r);}.text-a{color:var(--a);}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:20px;right:20px;z-index:9999;
+  padding:12px 20px;border-radius:var(--rad);
+  font-size:14px;font-weight:500;color:#fff;
+  background:var(--c800);box-shadow:var(--shm);
+  transition:opacity .3s;max-width:300px;
+}
+#toast.ok{background:var(--gd);}
+#toast.err{background:var(--r);}
+
+/* ── LOADER ── */
+#loader{
+  position:fixed;inset:0;background:#fff;z-index:9998;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+}
+.spinner{
+  width:40px;height:40px;border:4px solid var(--gl);
+  border-top-color:var(--g);border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loader p{color:var(--c400);font-size:14px;}
+
+/* ── SCREENS ── */
+.screen{display:none;}
+.screen.active{display:flex;flex-direction:column;height:100vh;}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+#screen-auth.active{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;height:auto;
+  background:linear-gradient(135deg,#E1F5EE 0%,#F9FAFB 55%,#E6F1FB 100%);
+  padding:20px;
+}
+.auth-wrap{width:100%;max-width:420px;}
+.auth-logo{text-align:center;margin-bottom:28px;}
+.auth-logo .badge{
+  display:inline-block;background:var(--g);color:#fff;
+  font-size:30px;font-weight:700;letter-spacing:4px;
+  padding:10px 22px;border-radius:var(--rad);margin-bottom:8px;
+}
+.auth-logo .name{font-size:15px;font-weight:600;color:var(--c800);}
+.auth-logo .sub{font-size:12px;color:var(--c400);margin-top:2px;}
+.auth-card{
+  background:#fff;border-radius:16px;padding:28px;
+  box-shadow:var(--shm);
+}
+.auth-card h2{font-size:19px;font-weight:600;margin-bottom:22px;color:var(--c800);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:500;color:var(--c600);margin-bottom:5px;}
+.field input,.field select,.field textarea{
+  width:100%;padding:10px 13px;
+  border:1.5px solid var(--c200);border-radius:var(--rads);
+  font-size:14px;font-family:var(--font);background:#fff;color:var(--c800);
+  outline:none;transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--g);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-row .field{margin-bottom:0;}
+.btn{
+  width:100%;padding:11px;background:var(--g);color:#fff;
+  border:none;border-radius:var(--rads);font-size:14px;font-weight:600;
+  cursor:pointer;transition:background .15s,transform .1s;margin-top:6px;
+}
+.btn:hover{background:var(--gd);}
+.btn:active{transform:scale(.98);}
+.btn.secondary{background:var(--c100);color:var(--c600);}
+.btn.secondary:hover{background:var(--c200);}
+.btn.danger{background:var(--rl);color:var(--r);}
+.auth-switch{text-align:center;margin-top:14px;font-size:13px;color:var(--c400);}
+.auth-switch a{color:var(--g);text-decoration:none;font-weight:500;}
+.err-box{
+  background:var(--rl);color:var(--r);padding:8px 12px;
+  border-radius:var(--rads);font-size:12px;margin-bottom:12px;
+}
+.ok-box{
+  background:var(--gl);color:var(--gd);padding:8px 12px;
+  border-radius:var(--rads);font-size:12px;margin-bottom:12px;
+}
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#screen-app.active{display:flex;height:100vh;overflow:hidden;}
+.sidebar{
+  width:var(--sw);background:#fff;border-right:1px solid var(--c200);
+  display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;
+  z-index:200;transition:transform .25s;
+}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:14px 16px;border-bottom:1px solid var(--c100);
+}
+.sb-logo .lg{
+  background:var(--g);color:#fff;font-size:12px;font-weight:700;
+  letter-spacing:1px;padding:4px 7px;border-radius:5px;
+}
+.sb-logo span{font-size:13px;font-weight:600;color:var(--gd);}
+.sb-sync{
+  font-size:10px;padding:2px 8px 4px 16px;
+  display:flex;align-items:center;gap:5px;
+}
+.sync-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--c400);flex-shrink:0;
+}
+.sync-dot.online{background:var(--g);}
+.sync-dot.offline{background:var(--a);}
+.sb-nav{flex:1;padding:10px 8px;overflow-y:auto;}
+.nav-grp{margin-bottom:18px;}
+.nav-lbl{
+  font-size:10px;font-weight:600;text-transform:uppercase;
+  letter-spacing:.8px;color:var(--c400);padding:4px 10px;margin-bottom:3px;
+}
+.nav-a{
+  display:flex;align-items:center;gap:9px;
+  padding:9px 11px;border-radius:var(--rads);font-size:13px;
+  color:var(--c600);cursor:pointer;transition:all .15s;margin-bottom:1px;
+  user-select:none;
+}
+.nav-a:hover{background:var(--c100);color:var(--c800);}
+.nav-a.active{background:var(--gl);color:var(--gd);font-weight:600;}
+.nav-a .ni{font-size:15px;}
+.sb-user{
+  padding:12px 14px;border-top:1px solid var(--c100);
+  display:flex;align-items:center;gap:9px;
+}
+.avt{
+  width:34px;height:34px;border-radius:50%;
+  background:var(--gl);color:var(--gd);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;
+}
+.sb-user .um{flex:1;overflow:hidden;}
+.sb-user .um p{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sb-user .um span{font-size:10px;color:var(--c400);}
+.btn-logout{
+  background:none;border:1px solid var(--c200);
+  border-radius:5px;padding:4px 7px;cursor:pointer;
+  font-size:13px;color:var(--c400);flex-shrink:0;
+}
+.btn-logout:hover{background:var(--rl);color:var(--r);border-color:var(--r);}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.topbar{
+  height:var(--th);background:#fff;border-bottom:1px solid var(--c200);
+  display:flex;align-items:center;padding:0 18px;gap:12px;flex-shrink:0;
+}
+.menu-btn{
+  display:none;background:none;border:none;
+  font-size:20px;cursor:pointer;padding:4px;color:var(--c600);
+}
+.tb-title{font-size:15px;font-weight:600;flex:1;}
+.tb-date{
+  font-size:11px;color:var(--c400);background:var(--c100);
+  padding:4px 11px;border-radius:20px;white-space:nowrap;
+}
+
+/* ── PAGES ── */
+.page{display:none;flex:1;overflow-y:auto;padding:18px;}
+.page.active{display:block;}
+
+/* ── SECTION HEADER ── */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-hdr h3{font-size:14px;font-weight:600;color:var(--c800);}
+
+/* ── SHIFT TABS ── */
+.shifts{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.sh-btn{
+  padding:7px 16px;border:1.5px solid var(--c200);border-radius:20px;
+  background:#fff;font-size:12px;font-weight:500;cursor:pointer;color:var(--c600);
+  transition:all .15s;
+}
+.sh-btn:hover{border-color:var(--g);color:var(--g);}
+.sh-btn.active{background:var(--g);border-color:var(--g);color:#fff;}
+
+/* ── KPI GRID ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px;}
+.kpi{
+  background:#fff;border:1px solid var(--c200);border-radius:var(--rad);
+  padding:13px 15px;box-shadow:var(--sh);
+}
+.kpi .lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--c400);margin-bottom:5px;}
+.kpi .val{font-size:20px;font-weight:700;}
+.kpi .sub{font-size:10px;color:var(--c400);margin-top:3px;}
+.kpi.g .val{color:var(--g);}
+.kpi.a .val{color:var(--a);}
+.kpi.r .val{color:var(--r);}
+.kpi.b .val{color:var(--b);}
+
+/* ── ANALYSE ── */
+.analyse{
+  background:#fff;border:1px solid var(--c200);border-radius:var(--rad);
+  padding:14px 16px;margin-bottom:16px;box-shadow:var(--sh);
+}
+.trend-badge{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:5px 13px;border-radius:20px;font-size:13px;font-weight:600;margin-bottom:10px;
+}
+.t-up{background:var(--gl);color:var(--gd);}
+.t-down{background:var(--rl);color:var(--r);}
+.t-stable{background:var(--al);color:var(--a);}
+.a-list{list-style:none;}
+.a-item{
+  display:flex;gap:8px;padding:5px 0;
+  border-bottom:1px solid var(--c100);font-size:12px;color:var(--c600);
+}
+.a-item:last-child{border-bottom:none;}
+.a-icon{font-size:14px;flex-shrink:0;}
+
+/* ── SERVICES GRID (dashboard) ── */
+.svc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:9px;}
+.svc-card{
+  background:#fff;border:1px solid var(--c200);border-radius:var(--rad);
+  padding:11px 13px;box-shadow:var(--sh);
+}
+.svc-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;}
+.svc-nm{font-size:12px;font-weight:600;color:var(--c800);}
+.badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:20px;}
+.b-ok{background:var(--gl);color:var(--gd);}
+.b-bad{background:var(--rl);color:var(--r);}
+.b-neu{background:var(--c100);color:var(--c600);}
+.svc-row{display:flex;justify-content:space-between;font-size:11px;color:var(--c400);padding:1px 0;}
+.svc-row span:last-child{color:var(--c800);font-weight:500;}
+
+/* ── SAISIE ── */
+.saisie-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;}
+.s-card{
+  background:#fff;border:1.5px solid var(--c200);border-radius:var(--rad);
+  padding:13px;box-shadow:var(--sh);transition:border-color .2s;
+}
+.s-card:hover{border-color:var(--gm);}
+.s-title{font-size:13px;font-weight:600;margin-bottom:11px;color:var(--c800);}
+.s-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:7px;}
+.s-row .field{margin-bottom:0;}
+.s-result{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:7px 10px;border-radius:6px;font-size:12px;font-weight:600;
+}
+.s-ok{background:var(--gl);color:var(--gd);}
+.s-bad{background:var(--rl);color:var(--r);}
+.s-neu{background:var(--c100);color:var(--c600);}
+.btn-save{
+  position:sticky;bottom:16px;margin-top:20px;
+  padding:13px;font-size:15px;box-shadow:var(--shm);
+}
+
+/* ── RAPPORTS ── */
+.r-section{
+  background:#fff;border:1px solid var(--c200);border-radius:var(--rad);
+  padding:18px;margin-bottom:14px;box-shadow:var(--sh);
+}
+.r-title{
+  font-size:14px;font-weight:600;color:var(--c800);
+  margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--c100);
+}
+.r-table{width:100%;border-collapse:collapse;font-size:12px;}
+.r-table th{
+  text-align:left;padding:7px 9px;
+  background:var(--c50);color:var(--c400);
+  font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;
+}
+.r-table td{padding:7px 9px;border-top:1px solid var(--c100);}
+.r-table tr:hover td{background:var(--c50);}
+.r-table tfoot td{font-weight:700;border-top:2px solid var(--c200);}
+.chart-wrap{display:flex;align-items:flex-end;gap:5px;height:90px;padding:0 2px;margin-top:10px;}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;height:100%;justify-content:flex-end;}
+.bar-v{font-size:8px;color:var(--gd);font-weight:600;text-align:center;}
+.bar-b{width:100%;border-radius:3px 3px 0 0;min-height:2px;background:var(--g);}
+.bar-l{font-size:9px;color:var(--c400);text-align:center;}
+.reco-box{
+  background:var(--al);border:1px solid #FAC775;border-radius:var(--rad);
+  padding:12px 14px;margin-top:12px;
+}
+.reco-title{font-size:12px;font-weight:600;color:var(--a);margin-bottom:8px;}
+
+/* ── INCIDENTS ── */
+.inc-card{
+  background:#fff;border:1px solid var(--c200);
+  border-left:4px solid var(--a);border-radius:var(--rad);
+  padding:11px 15px;box-shadow:var(--sh);margin-bottom:8px;
+}
+.inc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
+.inc-b{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;}
+.ib-t{background:var(--bl);color:var(--b);}
+.ib-s{background:var(--gl);color:var(--gd);}
+.ib-d{background:var(--c100);color:var(--c600);}
+.ib-u{background:var(--al);color:var(--a);}
+.inc-desc{font-size:12px;color:var(--c600);line-height:1.5;}
+
+/* ── PERSONNEL ── */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;}
+.person{
+  background:#fff;border:1px solid var(--c200);border-radius:var(--rad);
+  padding:14px;display:flex;align-items:center;gap:11px;box-shadow:var(--sh);
+}
+.person .avt{width:42px;height:42px;font-size:14px;}
+.person-nm{font-size:13px;font-weight:600;}
+.person-p{font-size:11px;color:var(--c400);}
+.person-t{font-size:11px;color:var(--g);}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:40px 20px;color:var(--c400);}
+.empty .ei{font-size:36px;margin-bottom:10px;}
+.empty p{font-size:13px;}
+
+/* ── FORM CARD ── */
+.form-card{
+  background:#fff;border:1px solid var(--c200);border-radius:var(--rad);
+  padding:18px;margin-bottom:16px;box-shadow:var(--sh);
+}
+.form-card h3{font-size:14px;font-weight:600;margin-bottom:14px;}
+
+/* ── CONFIG FIREBASE ── */
+.firebase-config{
+  background:#fff3cd;border:1px solid #ffc107;border-radius:var(--rad);padding:16px;margin-bottom:16px;
+}
+.firebase-config h4{color:#856404;margin-bottom:8px;font-size:14px;}
+.firebase-config p{color:#856404;font-size:12px;margin-bottom:12px;}
+.firebase-config input{
+  width:100%;padding:7px 10px;border:1px solid #ffc107;border-radius:5px;
+  font-size:12px;margin-bottom:6px;font-family:monospace;background:#fff;
+}
+.firebase-config .btn{background:#ffc107;color:#000;margin-top:6px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .sidebar{position:fixed;top:0;left:0;height:100%;transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .menu-btn{display:block;}
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .page{padding:12px;}
+  .field-row{grid-template-columns:1fr;}
+  .saisie-grid{grid-template-columns:1fr;}
+  .r-table{font-size:11px;}
+}
+@media(max-width:400px){
+  .kpi-grid{grid-template-columns:1fr 1fr;}
+  .kpi .val{font-size:16px;}
+  .auth-card{padding:20px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="spinner"></div>
+  <p>Chargement de TAFS Finance…</p>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="hidden"></div>
+
+<!-- ============================================================
+     ÉCRAN AUTH
+     ============================================================ -->
+<div id="screen-auth" class="screen">
+  <div class="auth-wrap">
+    <div class="auth-logo">
+      <div class="badge">TAFS</div>
+      <div class="name">Teranga Agrifood Services</div>
+      <div class="sub">Gestion Financière · Version 2.0</div>
+    </div>
+
+    <!-- CONNEXION -->
+    <div id="form-login" class="auth-card">
+      <h2>🔐 Connexion</h2>
+      <div id="login-err" class="err-box hidden"></div>
+      <div class="field">
+        <label>Téléphone</label>
+        <input type="tel" id="l-tel" placeholder="77 XXX XX XX" autocomplete="tel"/>
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="l-pwd" placeholder="••••••••" autocomplete="current-password"/>
+      </div>
+      <button class="btn" onclick="Auth.login()">Se connecter</button>
+      <p class="auth-switch">Pas de compte ? <a href="#" onclick="Auth.showReg()">Créer un compte</a></p>
+    </div>
+
+    <!-- INSCRIPTION -->
+    <div id="form-reg" class="auth-card hidden">
+      <h2>👤 Créer un compte</h2>
+      <div id="reg-err" class="err-box hidden"></div>
+      <div id="reg-ok" class="ok-box hidden"></div>
+      <div class="field-row">
+        <div class="field"><label>Prénom</label><input type="text" id="r-prenom" placeholder="Prénom"/></div>
+        <div class="field"><label>Nom</label><input type="text" id="r-nom" placeholder="Nom"/></div>
+      </div>
+      <div class="field">
+        <label>Téléphone (identifiant)</label>
+        <input type="tel" id="r-tel" placeholder="77 XXX XX XX"/>
+      </div>
+      <div class="field">
+        <label>Poste occupé</label>
+        <select id="r-poste">
+          <option value="">-- Sélectionner --</option>
+          <option>Gérant</option>
+          <option>Caissier(ère) Matin</option>
+          <option>Caissier(ère) Soir</option>
+          <option>Vendeur(se)</option>
+          <option>Superviseur</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Mot de passe</label>
+        <input type="password" id="r-pwd" placeholder="Minimum 6 caractères"/>
+      </div>
+      <button class="btn" onclick="Auth.register()">Créer mon compte</button>
+      <p class="auth-switch">Déjà un compte ? <a href="#" onclick="Auth.showLogin()">Se connecter</a></p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     APPLICATION PRINCIPALE
+     ============================================================ -->
+<div id="screen-app" class="screen">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sb-logo">
+      <div class="lg">TAFS</div>
+      <span>Finance</span>
+    </div>
+    <div class="sb-sync">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label" style="font-size:10px;color:var(--c400)">Vérification…</span>
+    </div>
+    <div class="sb-nav">
+      <div class="nav-grp">
+        <div class="nav-lbl">Principal</div>
+        <div class="nav-a active" data-p="dashboard" onclick="Nav.go('dashboard')"><span class="ni">📊</span> Tableau de bord</div>
+        <div class="nav-a" data-p="saisie" onclick="Nav.go('saisie')"><span class="ni">✏️</span> Saisie du jour</div>
+        <div class="nav-a" data-p="incidents" onclick="Nav.go('incidents')"><span class="ni">⚠️</span> Incidents</div>
+      </div>
+      <div class="nav-grp">
+        <div class="nav-lbl">Rapports</div>
+        <div class="nav-a" data-p="semaine" onclick="Nav.go('semaine')"><span class="ni">📅</span> Semaine</div>
+        <div class="nav-a" data-p="mois" onclick="Nav.go('mois')"><span class="ni">📆</span> Mois</div>
+        <div class="nav-a" data-p="annee" onclick="Nav.go('annee')"><span class="ni">📈</span> Année</div>
+      </div>
+      <div class="nav-grp">
+        <div class="nav-lbl">Équipe</div>
+        <div class="nav-a" data-p="personnel" onclick="Nav.go('personnel')"><span class="ni">👥</span> Personnel</div>
+      </div>
+    </div>
+    <div class="sb-user">
+      <div class="avt" id="sb-avt"></div>
+      <div class="um">
+        <p id="sb-name"></p>
+        <span id="sb-poste"></span>
+      </div>
+      <button class="btn-logout" title="Déconnexion" onclick="Auth.logout()">⏻</button>
+    </div>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" onclick="Nav.toggleMenu()">☰</button>
+      <div class="tb-title" id="page-title">Tableau de bord</div>
+      <div class="tb-date" id="top-date"></div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="page-dashboard" class="page active">
+      <div class="shifts">
+        <button class="sh-btn active" id="db-matin" onclick="DB_PAGE.shift('matin')">☀️ Matin</button>
+        <button class="sh-btn" id="db-soir" onclick="DB_PAGE.shift('soir')">🌙 Soir</button>
+        <button class="sh-btn" id="db-total" onclick="DB_PAGE.shift('total')">Σ Journée</button>
+      </div>
+      <div class="kpi-grid" id="db-kpis"></div>
+      <div class="sec-hdr"><h3>🤖 Analyse intelligente</h3></div>
+      <div class="analyse" id="db-analyse"></div>
+      <div class="sec-hdr" style="margin-top:4px"><h3>🏪 Performance par service</h3></div>
+      <div class="svc-grid" id="db-services"></div>
+    </div>
+
+    <!-- SAISIE -->
+    <div id="page-saisie" class="page hidden">
+      <div class="shifts">
+        <button class="sh-btn active" id="s-matin" onclick="SAISIE.shift('matin')">☀️ Service Matin</button>
+        <button class="sh-btn" id="s-soir" onclick="SAISIE.shift('soir')">🌙 Service Soir</button>
+      </div>
+      <div id="saisie-agent" style="font-size:12px;color:var(--c400);margin-bottom:12px;"></div>
+      <div class="saisie-grid" id="saisie-grid"></div>
+      <button class="btn btn-save" onclick="SAISIE.save()">💾 Enregistrer les données</button>
+    </div>
+
+    <!-- INCIDENTS -->
+    <div id="page-incidents" class="page hidden">
+      <div class="form-card">
+        <h3>📋 Signaler un incident</h3>
+        <div class="field-row">
+          <div class="field">
+            <label>Type d'incident</label>
+            <select id="inc-type">
+              <option value="stock">Rupture de stock</option>
+              <option value="materiel">Problème matériel</option>
+              <option value="hygiene">Hygiène</option>
+              <option value="client">Réclamation client</option>
+              <option value="autre">Autre</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Service</label>
+            <select id="inc-shift">
+              <option value="matin">☀️ Matin</option>
+              <option value="soir">🌙 Soir</option>
+              <option value="general">Général</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Description du problème</label>
+          <textarea id="inc-desc" rows="3" placeholder="Décrivez l'incident en détail…"></textarea>
+        </div>
+        <button class="btn" onclick="INC.save()">Enregistrer l'incident</button>
+      </div>
+      <div id="inc-list"></div>
+    </div>
+
+    <!-- RAPPORTS -->
+    <div id="page-semaine" class="page hidden"><div id="r-semaine"></div></div>
+    <div id="page-mois" class="page hidden"><div id="r-mois"></div></div>
+    <div id="page-annee" class="page hidden"><div id="r-annee"></div></div>
+
+    <!-- PERSONNEL -->
+    <div id="page-personnel" class="page hidden"><div id="personnel-wrap"></div></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT COMPLET
+     ============================================================ -->
+<script type="module">
+// ════════════════════════════════════════════════════════════
+// FIREBASE SDK (v10 CDN modulaire)
+// ════════════════════════════════════════════════════════════
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getAuth, createUserWithEmailAndPassword,
+  signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import {
+  getFirestore, doc, setDoc, getDoc, getDocs,
+  collection, onSnapshot, serverTimestamp, query, orderBy
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+
+// ════════════════════════════════════════════════════════════
+// ⚙️  CONFIGURATION FIREBASE
+// ➤  Remplacez par VOS valeurs depuis console.firebase.google.com
+// ════════════════════════════════════════════════════════════
+const FB_CONFIG = {
+  apiKey:            "AIzaSyCbJfNigAnmUM4das5VzPU-Vk7hUgVRFg4",
+  authDomain:        "tafs-finance.firebaseapp.com",
+  projectId:         "tafs-finance",
+  storageBucket:     "tafs-finance.firebasestorage.app",
+  messagingSenderId: "1089353223324",
+  appId:             "1:1089353223324:web:5baae44397b546bb3f7159"
+};
+
+// Firebase configuré — synchronisation activée
+const DEMO_MODE = false;
+
+let app, auth, db;
+let unsubListeners = [];
+
+app  = initializeApp(FB_CONFIG);
+auth = getAuth(app);
+db   = getFirestore(app);
+
+// ════════════════════════════════════════════════════════════
+// CONSTANTES GLOBALES
+// ════════════════════════════════════════════════════════════
+const SERVICES = [
+  {id:'fastfood',  nom:'Fast-food',   emoji:'🍟'},
+  {id:'maiga',     nom:'Maïga',       emoji:'🥣'},
+  {id:'cafe',      nom:'Café',        emoji:'☕'},
+  {id:'ataya',     nom:'Ataya',       emoji:'🍵'},
+  {id:'wass',      nom:'Wass',        emoji:'🥤'},
+  {id:'bissap',    nom:'Bissap',      emoji:'🌺'},
+  {id:'jus',       nom:'Jus Naturel', emoji:'🍊'},
+  {id:'popcorn',   nom:'Pop-Corn',    emoji:'🍿'},
+  {id:'bouraké',   nom:'Bouraké',     emoji:'🫖'},
+  {id:'kinkeliba', nom:'Kinkéliba',   emoji:'🌿'},
+  {id:'lait',      nom:'Lait',        emoji:'🥛'},
+  {id:'beignets',  nom:'Beignets',    emoji:'🍩'},
+  {id:'madd',      nom:'Madd',        emoji:'🍋'},
+  {id:'mango',     nom:'Mango',       emoji:'🥭'},
+  {id:'local',     nom:'Local',       emoji:'🏠'},
+  {id:'thiakry',   nom:'Thiakry',     emoji:'🍚'},
+  {id:'ngalakh',   nom:'Ngalakh',     emoji:'🍲'},
+  {id:'bouraké2',  nom:'Bouraké²',    emoji:'🫗'}, // placeholder si besoin
+];
+// Enlever le doublon bouraké2 si non utilisé
+const SVCS = SERVICES.filter(s => s.id !== 'bouraké2');
+
+// ════════════════════════════════════════════════════════════
+// ÉTAT GLOBAL
+// ════════════════════════════════════════════════════════════
+let STATE = {
+  user: null,         // profil Firestore
+  fbUser: null,       // Firebase Auth user
+  shift: 'matin',     // dashboard
+  sShift: 'matin',    // saisie
+  page: 'dashboard',
+  saisieData: {matin:{}, soir:{}},
+  allVentes: {},      // {dateStr: {matin:{}, soir:{}}}
+  allIncidents: [],
+  allUsers: [],
+  online: navigator.onLine,
+};
+
+// ════════════════════════════════════════════════════════════
+// UTILITAIRES
+// ════════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const todayStr = () => new Date().toISOString().split('T')[0];
+const todayLbl = () => new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+const fcfa = n => (n===undefined||n===null||n==='')?'—':Number(n).toLocaleString('fr-FR')+' F';
+const initials = (p,n) => ((p||'').charAt(0)+(n||'').charAt(0)).toUpperCase();
+
+function toast(msg, type=''){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = type;
+  t.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.add('hidden'),3500);
+}
+
+function setLoader(show){
+  $('loader').style.display = show ? 'flex' : 'none';
+}
+
+function updateSyncStatus(){
+  const dot   = $('sync-dot');
+  const label = $('sync-label');
+  if(DEMO_MODE){
+    dot.className='sync-dot offline';
+    label.textContent='Mode démo (local)';
+    return;
+  }
+  if(STATE.online){
+    dot.className='sync-dot online';
+    label.textContent='Synchronisé';
+  } else {
+    dot.className='sync-dot offline';
+    label.textContent='Hors connexion';
+  }
+}
+
+window.addEventListener('online',  ()=>{ STATE.online=true;  updateSyncStatus(); });
+window.addEventListener('offline', ()=>{ STATE.online=false; updateSyncStatus(); });
+
+// ════════════════════════════════════════════════════════════
+// LOCAL STORAGE (fallback + démo)
+// ════════════════════════════════════════════════════════════
+const LS = {
+  get(k){ try{ return JSON.parse(localStorage.getItem(k)); }catch(e){ return null; } },
+  set(k,v){ localStorage.setItem(k,JSON.stringify(v)); },
+  rm(k){ localStorage.removeItem(k); },
+};
+
+// ════════════════════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════════════════════
+window.Auth = {
+  showReg(){
+    $('form-login').classList.add('hidden');
+    $('form-reg').classList.remove('hidden');
+  },
+  showLogin(){
+    $('form-reg').classList.add('hidden');
+    $('form-login').classList.remove('hidden');
+  },
+
+  async register(){
+    const prenom = $('r-prenom').value.trim();
+    const nom    = $('r-nom').value.trim();
+    const tel    = $('r-tel').value.trim().replace(/\s+/g,'');
+    const poste  = $('r-poste').value;
+    const pwd    = $('r-pwd').value;
+    const eBox   = $('reg-err');
+    const oBox   = $('reg-ok');
+    eBox.classList.add('hidden');
+    oBox.classList.add('hidden');
+
+    if(!prenom||!nom||!tel||!poste||!pwd){
+      eBox.textContent='Tous les champs sont obligatoires.';
+      eBox.classList.remove('hidden'); return;
+    }
+    if(pwd.length < 6){
+      eBox.textContent='Mot de passe : 6 caractères minimum.';
+      eBox.classList.remove('hidden'); return;
+    }
+
+    setLoader(true);
+
+    if(DEMO_MODE){
+      // Mode démo : stockage local
+      const users = LS.get('tafs_users')||{};
+      if(users[tel]){ setLoader(false); eBox.textContent='Ce numéro existe déjà.'; eBox.classList.remove('hidden'); return; }
+      const u = {prenom,nom,tel,poste,createdAt:new Date().toISOString()};
+      users[tel] = {...u, pwd: btoa(pwd)};
+      LS.set('tafs_users', users);
+      LS.set('tafs_session', u);
+      STATE.user = u;
+      STATE.allUsers = Object.values(users).map(x=>({prenom:x.prenom,nom:x.nom,tel:x.tel,poste:x.poste}));
+      setLoader(false);
+      this._enter(u);
+      return;
+    }
+
+    // Firebase
+    const email = tel.replace(/\D/g,'') + '@tafs.sn';
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+      const u = {prenom,nom,tel,poste,uid:cred.user.uid,createdAt:new Date().toISOString()};
+      await setDoc(doc(db,'users',cred.user.uid), u);
+      STATE.user = u;
+      setLoader(false);
+      this._enter(u);
+    } catch(e) {
+      setLoader(false);
+      eBox.textContent = this._fbErr(e.code);
+      eBox.classList.remove('hidden');
+    }
+  },
+
+  async login(){
+    const tel  = $('l-tel').value.trim().replace(/\s+/g,'');
+    const pwd  = $('l-pwd').value;
+    const eBox = $('login-err');
+    eBox.classList.add('hidden');
+
+    if(!tel||!pwd){ eBox.textContent='Remplissez tous les champs.'; eBox.classList.remove('hidden'); return; }
+
+    setLoader(true);
+
+    if(DEMO_MODE){
+      const users = LS.get('tafs_users')||{};
+      const u = users[tel];
+      if(!u || atob(u.pwd)!==pwd){
+        setLoader(false);
+        eBox.textContent='Numéro ou mot de passe incorrect.';
+        eBox.classList.remove('hidden'); return;
+      }
+      const prof = {prenom:u.prenom,nom:u.nom,tel:u.tel,poste:u.poste};
+      LS.set('tafs_session', prof);
+      STATE.user = prof;
+      STATE.allUsers = Object.values(users).map(x=>({prenom:x.prenom,nom:x.nom,tel:x.tel,poste:x.poste}));
+      setLoader(false);
+      this._enter(prof);
+      return;
+    }
+
+    const email = tel.replace(/\D/g,'') + '@tafs.sn';
+    try {
+      await signInWithEmailAndPassword(auth, email, pwd);
+      // onAuthStateChanged s'en chargera
+    } catch(e) {
+      setLoader(false);
+      eBox.textContent = this._fbErr(e.code);
+      eBox.classList.remove('hidden');
+    }
+  },
+
+  async logout(){
+    setLoader(true);
+    unsubListeners.forEach(u=>u&&u());
+    unsubListeners=[];
+    if(!DEMO_MODE && auth) await signOut(auth).catch(()=>{});
+    LS.rm('tafs_session');
+    STATE = {...STATE, user:null, fbUser:null, allVentes:{}, allIncidents:[], allUsers:[], saisieData:{matin:{},soir:{}}};
+    setLoader(false);
+    $('screen-app').classList.remove('active');
+    $('screen-auth').classList.add('active');
+    Auth.showLogin();
+  },
+
+  _enter(user){
+    // Remplir sidebar
+    $('sb-name').textContent  = user.prenom+' '+user.nom;
+    $('sb-poste').textContent = user.poste;
+    $('sb-avt').textContent   = initials(user.prenom, user.nom);
+    $('top-date').textContent = todayLbl();
+    // Afficher app
+    $('screen-auth').classList.remove('active');
+    $('screen-app').classList.add('active');
+    updateSyncStatus();
+    this._listenData();
+    Nav.go('dashboard');
+    toast(`Bienvenue ${user.prenom} ! 👋`,'ok');
+  },
+
+  _listenData(){
+    if(DEMO_MODE){
+      // Charger depuis localStorage
+      STATE.allVentes    = LS.get('tafs_ventes') || {};
+      STATE.allIncidents = LS.get('tafs_incidents') || [];
+      STATE.allUsers     = Object.values(LS.get('tafs_users')||{}).map(u=>({prenom:u.prenom,nom:u.nom,tel:u.tel,poste:u.poste}));
+      return;
+    }
+    // Écoute Firestore en temps réel
+    const ventesQ = query(collection(db,'ventes'), orderBy('date','desc'));
+    unsubListeners.push(
+      onSnapshot(ventesQ, snap => {
+        STATE.allVentes = {};
+        snap.forEach(d => {
+          const row = d.data();
+          if(!STATE.allVentes[row.date]) STATE.allVentes[row.date]={};
+          STATE.allVentes[row.date][row.shift] = row.services || {};
+        });
+        if(STATE.page==='dashboard') DB_PAGE.render();
+        else if(['semaine','mois','annee'].includes(STATE.page)) Rapports.render(STATE.page);
+      })
+    );
+    const incQ = query(collection(db,'incidents'), orderBy('createdAt','desc'));
+    unsubListeners.push(
+      onSnapshot(incQ, snap => {
+        STATE.allIncidents = snap.docs.map(d=>({id:d.id,...d.data()}));
+        if(STATE.page==='incidents') INC.render();
+      })
+    );
+    const usersQ = collection(db,'users');
+    unsubListeners.push(
+      onSnapshot(usersQ, snap => {
+        STATE.allUsers = snap.docs.map(d=>d.data());
+        if(STATE.page==='personnel') renderPersonnel();
+      })
+    );
+  },
+
+  _fbErr(code){
+    const m = {
+      'auth/email-already-in-use':'Ce numéro est déjà enregistré.',
+      'auth/invalid-email':'Format invalide.',
+      'auth/weak-password':'Mot de passe trop faible.',
+      'auth/user-not-found':'Numéro introuvable.',
+      'auth/wrong-password':'Mot de passe incorrect.',
+      'auth/too-many-requests':'Trop de tentatives. Réessayez plus tard.',
+      'auth/network-request-failed':'Pas de connexion internet.',
+    };
+    return m[code] || 'Erreur : '+code;
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════════════════
+const PAGE_TITLES = {
+  dashboard:'Tableau de bord', saisie:'Saisie du jour',
+  incidents:'Incidents', semaine:'Rapport Semaine',
+  mois:'Rapport Mensuel', annee:'Rapport Annuel', personnel:'Équipe'
+};
+
+window.Nav = {
+  go(page){
+    STATE.page = page;
+    document.querySelectorAll('.nav-a').forEach(el=>
+      el.classList.toggle('active', el.dataset.p===page)
+    );
+    $('page-title').textContent = PAGE_TITLES[page]||page;
+    document.querySelectorAll('.page').forEach(el=>{
+      el.classList.remove('active');
+      el.classList.add('hidden');
+    });
+    const target = $('page-'+page);
+    if(target){ target.classList.add('active'); target.classList.remove('hidden'); }
+    this.closeMenu();
+    // Charger
+    switch(page){
+      case 'dashboard':  DB_PAGE.render(); break;
+      case 'saisie':     SAISIE.load(); break;
+      case 'incidents':  INC.load(); break;
+      case 'semaine':
+      case 'mois':
+      case 'annee':      Rapports.render(page); break;
+      case 'personnel':  renderPersonnel(); break;
+    }
+  },
+  toggleMenu(){ $('sidebar').classList.toggle('open'); },
+  closeMenu(){  $('sidebar').classList.remove('open'); }
+};
+
+// ════════════════════════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════════════════════════
+window.DB_PAGE = {
+  shift(s){
+    STATE.shift = s;
+    ['matin','soir','total'].forEach(x=>$('db-'+x)?.classList.toggle('active',x===s));
+    this.render();
+  },
+
+  render(){
+    const date = todayStr();
+    const dayData = STATE.allVentes[date] || {};
+    let svcs = {};
+
+    if(STATE.shift==='total'){
+      SVCS.forEach(s=>{
+        const vm = dayData.matin?.[s.id] || {};
+        const vs = dayData.soir?.[s.id]  || {};
+        svcs[s.id] = {
+          ventes:   (Number(vm.ventes)||0)  + (Number(vs.ventes)||0),
+          depenses: (Number(vm.depenses)||0)+(Number(vs.depenses)||0),
+        };
+      });
+    } else {
+      SVCS.forEach(s=>{
+        const sv = dayData[STATE.shift]?.[s.id] || {};
+        svcs[s.id]={ventes:Number(sv.ventes)||0,depenses:Number(sv.depenses)||0};
+      });
+    }
+
+    let tv=0,td=0;
+    SVCS.forEach(s=>{ tv+=svcs[s.id].ventes; td+=svcs[s.id].depenses; });
+    const ben  = tv-td;
+    const marge= tv>0?Math.round((ben/tv)*100):0;
+    const tend = this._tendance();
+
+    // KPIs
+    $('db-kpis').innerHTML = `
+      <div class="kpi g"><div class="lbl">Ventes</div><div class="val">${fcfa(tv)}</div><div class="sub">Chiffre d'affaires</div></div>
+      <div class="kpi a"><div class="lbl">Dépenses</div><div class="val">${fcfa(td)}</div><div class="sub">${tv>0?Math.round(td/tv*100):0}% du CA</div></div>
+      <div class="kpi ${ben>=0?'g':'r'}"><div class="lbl">Bénéfice</div><div class="val">${fcfa(ben)}</div><div class="sub">Marge ${marge}%</div></div>
+      <div class="kpi ${tend.cls}"><div class="lbl">Tendance</div><div class="val" style="font-size:15px">${tend.icon} ${tend.lbl}</div><div class="sub">${tend.sub}</div></div>
+    `;
+
+    // Analyse
+    this._analyse(svcs, ben, marge, tend);
+
+    // Services
+    $('db-services').innerHTML = SVCS.map(s=>{
+      const sv=svcs[s.id]; const v=sv.ventes; const d=sv.depenses; const b=v-d;
+      const has=v>0||d>0;
+      return `<div class="svc-card">
+        <div class="svc-hdr">
+          <div class="svc-nm">${s.emoji} ${s.nom}</div>
+          <span class="badge ${!has?'b-neu':b>=0?'b-ok':'b-bad'}">${!has?'—':b>=0?'+'+fcfa(b):fcfa(b)}</span>
+        </div>
+        <div class="svc-row"><span>Ventes</span><span>${has?fcfa(v):'—'}</span></div>
+        <div class="svc-row"><span>Dépenses</span><span>${has?fcfa(d):'—'}</span></div>
+        <div class="svc-row"><span>Bénéfice</span><span style="color:${!has?'inherit':b>=0?'var(--g)':'var(--r)'}">${has?fcfa(b):'—'}</span></div>
+      </div>`;
+    }).join('');
+  },
+
+  _tendance(){
+    const dates = Object.keys(STATE.allVentes).sort().slice(-7);
+    if(dates.length<2) return {lbl:'Données insuffisantes',icon:'📊',sub:'Continuez la saisie',cls:'b'};
+    const bens = dates.map(d=>{
+      let tv=0,td=0;
+      ['matin','soir'].forEach(sh=>{
+        SVCS.forEach(s=>{
+          const sv = STATE.allVentes[d]?.[sh]?.[s.id]||{};
+          tv+=Number(sv.ventes)||0; td+=Number(sv.depenses)||0;
+        });
+      });
+      return tv-td;
+    });
+    const recent = bens.slice(-3).reduce((a,b)=>a+b,0)/3;
+    const ancien = bens.slice(0,-3).reduce((a,b)=>a+b,0)/Math.max(bens.length-3,1);
+    const pct = ancien!==0?Math.round(((recent-ancien)/Math.abs(ancien))*100):0;
+    if(recent>ancien*1.05) return {lbl:'Ascendante',icon:'↑',sub:`+${pct}% vs avant`,cls:'g'};
+    if(recent<ancien*0.95) return {lbl:'Descendante',icon:'↓',sub:`${pct}% vs avant`,cls:'r'};
+    return {lbl:'Stable',icon:'→',sub:'Performance constante',cls:'a'};
+  },
+
+  _analyse(svcs, ben, marge, tend){
+    const items=[];
+    const ranked = SVCS.map(s=>{
+      const sv=svcs[s.id]; return {...s,v:sv.ventes,d:sv.depenses,b:sv.ventes-sv.depenses};
+    }).filter(s=>s.v>0||s.d>0).sort((a,b)=>b.b-a.b);
+
+    if(ranked.length){
+      items.push({i:'🏆',t:`Meilleur service : <b>${ranked[0].emoji} ${ranked[0].nom}</b> (${fcfa(ranked[0].b)})`});
+    }
+    const def = ranked.filter(s=>s.b<0);
+    if(def.length) items.push({i:'⚠️',t:`Services déficitaires : <b>${def.map(s=>s.nom).join(', ')}</b> — revoir prix ou achats`});
+    if(marge<30&&ben>0) items.push({i:'📉',t:'Marge < 30% — réduire dépenses ou augmenter prix'});
+    if(marge>=50)       items.push({i:'✅',t:`Excellente marge de ${marge}% !`});
+    const nonSaisis = SVCS.filter(s=>!svcs[s.id]?.ventes&&!svcs[s.id]?.depenses);
+    if(nonSaisis.length&&nonSaisis.length<SVCS.length)
+      items.push({i:'📋',t:`${nonSaisis.length} service(s) non saisi(s) : ${nonSaisis.slice(0,4).map(s=>s.nom).join(', ')}${nonSaisis.length>4?'…':''}`});
+    if(!items.length)
+      items.push({i:'💡',t:'Saisissez les données via <b>Saisie du jour</b> pour voir l\'analyse.'});
+
+    const tc = tend.lbl==='Ascendante'?'t-up':tend.lbl==='Descendante'?'t-down':'t-stable';
+    $('db-analyse').innerHTML = `
+      <div class="trend-badge ${tc}">${tend.icon} Tendance ${tend.lbl} — ${tend.sub}</div>
+      <ul class="a-list">
+        ${items.map(i=>`<li class="a-item"><span class="a-icon">${i.i}</span><span>${i.t}</span></li>`).join('')}
+      </ul>
+    `;
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// SAISIE
+// ════════════════════════════════════════════════════════════
+window.SAISIE = {
+  load(){
+    const d = todayStr();
+    ['matin','soir'].forEach(sh=>{
+      const saved = STATE.allVentes[d]?.[sh] || {};
+      STATE.saisieData[sh] = {};
+      SVCS.forEach(s=>{
+        STATE.saisieData[sh][s.id] = {
+          ventes:   Number(saved[s.id]?.ventes)||0,
+          depenses: Number(saved[s.id]?.depenses)||0,
+        };
+      });
+    });
+    this._render();
+  },
+
+  shift(s){
+    STATE.sShift=s;
+    ['matin','soir'].forEach(x=>$('s-'+x)?.classList.toggle('active',x===s));
+    this._render();
+  },
+
+  _render(){
+    const u = STATE.user;
+    $('saisie-agent').textContent =
+      `📍 ${STATE.sShift==='matin'?'☀️ Service Matin':'🌙 Service Soir'} — Agent : ${u?.prenom} ${u?.nom} (${u?.poste}) — ${todayLbl()}`;
+
+    const data = STATE.saisieData[STATE.sShift];
+    $('saisie-grid').innerHTML = SVCS.map(s=>{
+      const sv = data[s.id]||{};
+      const v=sv.ventes||''; const d=sv.depenses||'';
+      const b=(Number(v)||0)-(Number(d)||0);
+      const has=v!==''||d!=='';
+      const rc = !has?'s-neu':b>=0?'s-ok':'s-bad';
+      const rt = !has?'Saisissez les montants':b>=0?`Bénéfice : ${fcfa(b)}`:`Déficit : ${fcfa(Math.abs(b))}`;
+      return `
+        <div class="s-card">
+          <div class="s-title">${s.emoji} ${s.nom}</div>
+          <div class="s-row">
+            <div class="field"><label>Ventes (F CFA)</label>
+              <input type="number" id="v_${s.id}" value="${v}" placeholder="0" min="0"
+                oninput="SAISIE.update('${s.id}')"/>
+            </div>
+            <div class="field"><label>Dépenses (F CFA)</label>
+              <input type="number" id="d_${s.id}" value="${d}" placeholder="0" min="0"
+                oninput="SAISIE.update('${s.id}')"/>
+            </div>
+          </div>
+          <div class="s-result ${rc}" id="res_${s.id}">${rt}</div>
+        </div>`;
+    }).join('');
+  },
+
+  update(sid){
+    const v = Number($('v_'+sid)?.value)||0;
+    const d = Number($('d_'+sid)?.value)||0;
+    const b = v-d; const has=v>0||d>0;
+    STATE.saisieData[STATE.sShift][sid] = {ventes:v,depenses:d};
+    const el = $('res_'+sid); if(!el) return;
+    el.className = 's-result '+(!has?'s-neu':b>=0?'s-ok':'s-bad');
+    el.textContent = !has?'Saisissez les montants':b>=0?`Bénéfice : ${fcfa(b)}`:`Déficit : ${fcfa(Math.abs(b))}`;
+  },
+
+  async save(){
+    // Collecter depuis le DOM
+    SVCS.forEach(s=>{
+      const v = Number($('v_'+s.id)?.value)||0;
+      const d = Number($('d_'+s.id)?.value)||0;
+      STATE.saisieData[STATE.sShift][s.id]={ventes:v,depenses:d};
+    });
+
+    const date  = todayStr();
+    const shift = STATE.sShift;
+    const svcs  = STATE.saisieData[shift];
+
+    if(DEMO_MODE){
+      const v = LS.get('tafs_ventes')||{};
+      if(!v[date]) v[date]={};
+      v[date][shift] = svcs;
+      LS.set('tafs_ventes',v);
+      STATE.allVentes = v;
+      toast('✅ Données enregistrées !','ok');
+      return;
+    }
+
+    try{
+      const docId = `${date}_${shift}`;
+      await setDoc(doc(db,'ventes',docId),{
+        date,shift,
+        services: svcs,
+        userTel:  STATE.user.tel,
+        userName: `${STATE.user.prenom} ${STATE.user.nom}`,
+        updatedAt: serverTimestamp(),
+      });
+      toast('✅ Données synchronisées !','ok');
+    }catch(e){
+      toast('Erreur : '+e.message,'err');
+    }
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// INCIDENTS
+// ════════════════════════════════════════════════════════════
+window.INC = {
+  load(){
+    // Afficher liste (STATE.allIncidents est mis à jour par listener)
+    this.render();
+  },
+  render(){
+    const list = $('inc-list');
+    if(!STATE.allIncidents.length){
+      list.innerHTML='<div class="empty"><div class="ei">✅</div><p>Aucun incident signalé</p></div>'; return;
+    }
+    const types={stock:'Rupture stock',materiel:'Matériel',hygiene:'Hygiène',client:'Client',autre:'Autre'};
+    const shifts={matin:'☀️ Matin',soir:'🌙 Soir',general:'Général'};
+    list.innerHTML = STATE.allIncidents.map(i=>`
+      <div class="inc-card">
+        <div class="inc-meta">
+          <span class="inc-b ib-t">${types[i.type]||i.type}</span>
+          <span class="inc-b ib-s">${shifts[i.shift]||i.shift}</span>
+          <span class="inc-b ib-d">${i.date||''}</span>
+          <span class="inc-b ib-u">👤 ${i.userName||''}</span>
+        </div>
+        <div class="inc-desc">${i.description}</div>
+      </div>`).join('');
+  },
+  async save(){
+    const type  = $('inc-type').value;
+    const shift = $('inc-shift').value;
+    const desc  = $('inc-desc').value.trim();
+    if(!desc){ toast('Décrivez le problème.','err'); return; }
+
+    const inc = {
+      type,shift,description:desc,date:todayStr(),
+      userTel:  STATE.user?.tel||'',
+      userName: `${STATE.user?.prenom} ${STATE.user?.nom}`,
+    };
+
+    if(DEMO_MODE){
+      const list = LS.get('tafs_incidents')||[];
+      list.unshift({...inc,id:Date.now()});
+      LS.set('tafs_incidents',list);
+      STATE.allIncidents = list;
+      $('inc-desc').value='';
+      this.render();
+      toast('Incident enregistré.','ok');
+      return;
+    }
+
+    try{
+      await setDoc(doc(collection(db,'incidents')),{...inc,createdAt:serverTimestamp()});
+      $('inc-desc').value='';
+      toast('Incident enregistré.','ok');
+    }catch(e){ toast('Erreur : '+e.message,'err'); }
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// RAPPORTS
+// ════════════════════════════════════════════════════════════
+const Rapports = {
+  render(page){
+    switch(page){
+      case 'semaine': this._semaine(); break;
+      case 'mois':    this._mois(); break;
+      case 'annee':   this._annee(); break;
+    }
+  },
+
+  _sum(dates){
+    let tv=0,td=0;
+    const svcs={};
+    SVCS.forEach(s=>svcs[s.id]={v:0,d:0});
+    dates.forEach(date=>{
+      ['matin','soir'].forEach(sh=>{
+        SVCS.forEach(s=>{
+          const sv=STATE.allVentes[date]?.[sh]?.[s.id]||{};
+          tv+=Number(sv.ventes)||0; td+=Number(sv.depenses)||0;
+          svcs[s.id].v+=Number(sv.ventes)||0;
+          svcs[s.id].d+=Number(sv.depenses)||0;
+        });
+      });
+    });
+    const ben=tv-td, marge=tv>0?Math.round(ben/tv*100):0;
+    return{tv,td,ben,marge,svcs};
+  },
+
+  _bar(vals, lbls, color='var(--g)'){
+    const max=Math.max(...vals,1);
+    return `<div class="chart-wrap">
+      ${vals.map((v,i)=>`
+        <div class="bar-col">
+          <div class="bar-v">${v>0?(v>=1000?Math.round(v/1000)+'k':v):''}</div>
+          <div class="bar-b" style="height:${Math.max(Math.round(v/max*100),v>0?2:0)}%;background:${color}"></div>
+          <div class="bar-l">${lbls[i]}</div>
+        </div>`).join('')}
+    </div>`;
+  },
+
+  _reco(svcs, periode){
+    const ranked=SVCS.map(s=>({...s,...svcs[s.id],b:svcs[s.id].v-svcs[s.id].d})).sort((a,b)=>b.b-a.b);
+    const items=[];
+    const best=ranked.find(s=>s.v>0);
+    const def=ranked.filter(s=>s.b<0&&s.v>0);
+    const abs=ranked.filter(s=>!s.v&&!s.d);
+    if(best) items.push({i:'🏆',t:`Meilleur service : <b>${best.emoji} ${best.nom}</b> (${fcfa(best.b)})`});
+    if(def.length) items.push({i:'⚠️',t:`Déficitaires : <b>${def.map(s=>s.nom).join(', ')}</b>`});
+    if(abs.length&&abs.length<SVCS.length) items.push({i:'📋',t:`${abs.length} service(s) non opérationnel(s)`});
+    if(!items.length) items.push({i:'💡',t:'Continuez la saisie pour plus de recommandations.'});
+    return `<div class="reco-box">
+      <div class="reco-title">💡 Recommandations</div>
+      <ul class="a-list">${items.map(i=>`<li class="a-item"><span class="a-icon">${i.i}</span><span style="font-size:12px">${i.t}</span></li>`).join('')}</ul>
+    </div>`;
+  },
+
+  _tbl(svcs){
+    const ranked=SVCS.map(s=>({...s,...svcs[s.id],b:svcs[s.id].v-svcs[s.id].d})).sort((a,b)=>b.b-a.b).filter(s=>s.v>0||s.d>0);
+    if(!ranked.length) return '<div class="empty"><div class="ei">📊</div><p>Aucune donnée</p></div>';
+    return `<table class="r-table">
+      <thead><tr><th>Service</th><th style="text-align:right">Ventes</th><th style="text-align:right">Dépenses</th><th style="text-align:right">Bénéfice</th><th style="text-align:right">Marge</th></tr></thead>
+      <tbody>${ranked.map(s=>{
+        const m=s.v>0?Math.round(s.b/s.v*100):0;
+        const c=s.b>=0?'var(--g)':'var(--r)';
+        return `<tr>
+          <td><b>${s.emoji} ${s.nom}</b></td>
+          <td style="text-align:right">${fcfa(s.v)}</td>
+          <td style="text-align:right">${fcfa(s.d)}</td>
+          <td style="text-align:right;color:${c};font-weight:600">${fcfa(s.b)}</td>
+          <td style="text-align:right;color:${c}">${m}%</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`;
+  },
+
+  _semaine(){
+    const now=new Date();
+    const dates7=[]; for(let i=6;i>=0;i--){const d=new Date(now);d.setDate(now.getDate()-i);dates7.push(d.toISOString().split('T')[0]);}
+    const dates7p=[]; for(let i=13;i>=7;i--){const d=new Date(now);d.setDate(now.getDate()-i);dates7p.push(d.toISOString().split('T')[0]);}
+    const t=this._sum(dates7), tp=this._sum(dates7p);
+    const jLbls=dates7.map(d=>new Date(d+'T12:00:00').toLocaleDateString('fr-FR',{weekday:'short'}).slice(0,2));
+    const jVals=dates7.map(d=>{const r=this._sum([d]);return r.tv;});
+
+    const pct=(val,ref)=>ref?Math.round(((val-ref)/Math.abs(ref))*100):0;
+    const trend=(v,r)=>{const p=pct(v,r);return p>0?`<span style="color:var(--g)">↑ +${p}%</span>`:p<0?`<span style="color:var(--r)">↓ ${p}%</span>`:'→ stable';};
+
+    $('r-semaine').innerHTML = `
+      <div class="r-section">
+        <div class="r-title">📅 Bilan de la semaine</div>
+        <div class="kpi-grid">
+          <div class="kpi g"><div class="lbl">Ventes</div><div class="val">${fcfa(t.tv)}</div><div class="sub">${trend(t.tv,tp.tv)} vs sem. préc.</div></div>
+          <div class="kpi a"><div class="lbl">Dépenses</div><div class="val">${fcfa(t.td)}</div><div class="sub">Marge ${t.marge}%</div></div>
+          <div class="kpi ${t.ben>=0?'g':'r'}"><div class="lbl">Bénéfice</div><div class="val">${fcfa(t.ben)}</div><div class="sub">${trend(t.ben,tp.ben)} vs sem. préc.</div></div>
+          <div class="kpi b"><div class="lbl">Moy./jour</div><div class="val">${fcfa(Math.round(t.ben/7))}</div><div class="sub">bénéfice moyen</div></div>
+        </div>
+      </div>
+      <div class="r-section">
+        <div class="r-title">📊 Ventes journalières</div>
+        ${this._bar(jVals, jLbls)}
+      </div>
+      <div class="r-section">
+        <div class="r-title">🏪 Performance par service</div>
+        ${this._tbl(t.svcs)}
+        ${this._reco(t.svcs,'semaine')}
+      </div>`;
+  },
+
+  _mois(){
+    const now=new Date(); const y=now.getFullYear(),m=now.getMonth();
+    const dates=Object.keys(STATE.allVentes).filter(d=>{const dd=new Date(d+'T12:00:00');return dd.getFullYear()===y&&dd.getMonth()===m;});
+    const prev=Object.keys(STATE.allVentes).filter(d=>{const dd=new Date(d+'T12:00:00');return dd.getFullYear()===(m===0?y-1:y)&&dd.getMonth()===(m===0?11:m-1);});
+    const t=this._sum(dates),tp=this._sum(prev);
+    const trend=(v,r)=>{const p=r?Math.round(((v-r)/Math.abs(r))*100):0;return p>0?`<span style="color:var(--g)">↑ +${p}%</span>`:p<0?`<span style="color:var(--r)">↓ ${p}%</span>`:'→ stable';};
+    const sems=['S1','S2','S3','S4','S5'];
+    const semDates=sems.map((_,i)=>dates.filter(d=>{const day=new Date(d+'T12:00:00').getDate();const [lo,hi]=[[1,7],[8,14],[15,21],[22,28],[29,31]][i];return day>=lo&&day<=hi;}));
+    const semVals=semDates.map(dd=>this._sum(dd).tv);
+    const semLbls=sems.filter((_,i)=>semDates[i].length);
+    const semV2=semVals.filter((_,i)=>semDates[i].length);
+    const mNom=now.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});
+
+    $('r-mois').innerHTML=`
+      <div class="r-section">
+        <div class="r-title">📆 Rapport mensuel — ${mNom}</div>
+        <div class="kpi-grid">
+          <div class="kpi g"><div class="lbl">CA du mois</div><div class="val">${fcfa(t.tv)}</div><div class="sub">${trend(t.tv,tp.tv)} vs mois préc.</div></div>
+          <div class="kpi a"><div class="lbl">Dépenses</div><div class="val">${fcfa(t.td)}</div><div class="sub">Marge ${t.marge}%</div></div>
+          <div class="kpi ${t.ben>=0?'g':'r'}"><div class="lbl">Bénéfice</div><div class="val">${fcfa(t.ben)}</div><div class="sub">${trend(t.ben,tp.ben)} vs mois préc.</div></div>
+          <div class="kpi b"><div class="lbl">Jours actifs</div><div class="val">${dates.length}</div><div class="sub">jours avec données</div></div>
+        </div>
+      </div>
+      <div class="r-section">
+        <div class="r-title">📊 Ventes par semaine</div>
+        ${this._bar(semV2,semLbls)}
+      </div>
+      <div class="r-section">
+        <div class="r-title">🏪 Performance par service — ${mNom}</div>
+        ${this._tbl(t.svcs)}
+        ${this._reco(t.svcs,'mois')}
+      </div>`;
+  },
+
+  _annee(){
+    const now=new Date(); const y=now.getFullYear();
+    const MOIS=['Jan','Fév','Mar','Avr','Mai','Juin','Juil','Aoû','Sep','Oct','Nov','Déc'];
+    const datesAn=Object.keys(STATE.allVentes).filter(d=>new Date(d+'T12:00:00').getFullYear()===y);
+    const tAn=this._sum(datesAn);
+    const moisData=MOIS.map((_,mi)=>{
+      const dd=datesAn.filter(d=>new Date(d+'T12:00:00').getMonth()===mi);
+      return {...this._sum(dd),jours:dd.length};
+    });
+    const mVals=moisData.map(m=>m.tv);
+    const bVals=moisData.map(m=>Math.max(m.ben,0));
+
+    $('r-annee').innerHTML=`
+      <div class="r-section">
+        <div class="r-title">📈 Rapport annuel — ${y}</div>
+        <div class="kpi-grid">
+          <div class="kpi g"><div class="lbl">CA annuel</div><div class="val">${fcfa(tAn.tv)}</div><div class="sub">Chiffre d'affaires total</div></div>
+          <div class="kpi a"><div class="lbl">Dépenses</div><div class="val">${fcfa(tAn.td)}</div><div class="sub">Marge globale ${tAn.marge}%</div></div>
+          <div class="kpi ${tAn.ben>=0?'g':'r'}"><div class="lbl">Bénéfice annuel</div><div class="val">${fcfa(tAn.ben)}</div><div class="sub">Résultat ${y}</div></div>
+          <div class="kpi b"><div class="lbl">Moy./mois</div><div class="val">${fcfa(Math.round(tAn.ben/12))}</div><div class="sub">bénéfice mensuel</div></div>
+        </div>
+      </div>
+      <div class="r-section">
+        <div class="r-title">📊 CA mensuel — ${y}</div>
+        ${this._bar(mVals,MOIS)}
+        <div style="margin-top:14px;font-size:11px;color:var(--c400)">Bénéfices :</div>
+        ${this._bar(bVals,MOIS,'#5DCAA5')}
+      </div>
+      <div class="r-section">
+        <div class="r-title">📋 Tableau mensuel détaillé</div>
+        <table class="r-table">
+          <thead><tr><th>Mois</th><th style="text-align:right">Ventes</th><th style="text-align:right">Dépenses</th><th style="text-align:right">Bénéfice</th><th style="text-align:right">Marge</th><th style="text-align:right">Jours</th></tr></thead>
+          <tbody>
+            ${moisData.map((m,i)=>{
+              const c=m.ben>=0?'var(--g)':'var(--r)';
+              const has=m.tv>0||m.td>0;
+              return `<tr ${!has?'style="opacity:.35"':''}>
+                <td><b>${MOIS[i]}</b></td>
+                <td style="text-align:right">${has?fcfa(m.tv):'—'}</td>
+                <td style="text-align:right">${has?fcfa(m.td):'—'}</td>
+                <td style="text-align:right;color:${c};font-weight:600">${has?fcfa(m.ben):'—'}</td>
+                <td style="text-align:right;color:${c}">${has?m.marge+'%':'—'}</td>
+                <td style="text-align:right;color:var(--c400)">${m.jours}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+          <tfoot><tr>
+            <td>TOTAL ${y}</td>
+            <td style="text-align:right;color:var(--g)">${fcfa(tAn.tv)}</td>
+            <td style="text-align:right;color:var(--a)">${fcfa(tAn.td)}</td>
+            <td style="text-align:right;color:${tAn.ben>=0?'var(--g)':'var(--r)'};font-weight:700">${fcfa(tAn.ben)}</td>
+            <td style="text-align:right">${tAn.marge}%</td>
+            <td style="text-align:right;color:var(--c400)">${datesAn.length}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+      <div class="r-section">
+        <div class="r-title">🏪 Top services de l'année</div>
+        ${this._tbl(tAn.svcs)}
+        ${this._reco(tAn.svcs,'année')}
+      </div>`;
+  }
+};
+
+// ════════════════════════════════════════════════════════════
+// PERSONNEL
+// ════════════════════════════════════════════════════════════
+function renderPersonnel(){
+  const users = STATE.allUsers;
+  $('personnel-wrap').innerHTML = `
+    <div class="sec-hdr"><h3>👥 Équipe TAFS (${users.length} membre${users.length>1?'s':''})</h3></div>
+    ${users.length ? `<div class="team-grid">
+      ${users.map(u=>`
+        <div class="person">
+          <div class="avt">${initials(u.prenom,u.nom)}</div>
+          <div>
+            <div class="person-nm">${u.prenom} ${u.nom}</div>
+            <div class="person-p">${u.poste}</div>
+            <div class="person-t">📞 ${u.tel}</div>
+          </div>
+        </div>`).join('')}
+    </div>` : '<div class="empty"><div class="ei">👥</div><p>Aucun membre enregistré</p></div>'}
+  `;
+}
+
+// ════════════════════════════════════════════════════════════
+// INITIALISATION
+// ════════════════════════════════════════════════════════════
+async function init(){
+  // Service Worker
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  }
+
+  $('top-date').textContent = todayLbl();
+  updateSyncStatus();
+
+  if(DEMO_MODE){
+    // Vérifier session locale
+    const sess = LS.get('tafs_session');
+    if(sess){
+      STATE.user = sess;
+      STATE.allUsers     = Object.values(LS.get('tafs_users')||{}).map(u=>({prenom:u.prenom,nom:u.nom,tel:u.tel,poste:u.poste}));
+      STATE.allVentes    = LS.get('tafs_ventes')||{};
+      STATE.allIncidents = LS.get('tafs_incidents')||[];
+      setLoader(false);
+      Auth._enter(sess);
+    } else {
+      setLoader(false);
+      $('screen-auth').classList.add('active');
+    }
+    return;
+  }
+
+  // Firebase Auth listener
+  onAuthStateChanged(auth, async fbUser=>{
+    if(fbUser){
+      STATE.fbUser = fbUser;
+      const snap = await getDoc(doc(db,'users',fbUser.uid));
+      STATE.user  = snap.exists() ? snap.data() : null;
+      setLoader(false);
+      if(STATE.user) Auth._enter(STATE.user);
+      else { await signOut(auth); setLoader(false); $('screen-auth').classList.add('active'); }
+    } else {
+      setLoader(false);
+      $('screen-auth').classList.add('active');
+    }
+  });
+}
+
+// Démarrer
+init();
+</script>
+</body>
+</html>
