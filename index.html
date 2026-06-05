@@ -159,6 +159,16 @@ html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--slate);
 .sb-user-info{flex:1;overflow:hidden;}
 .sb-user-name{color:#fff;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .sb-user-role{color:rgba(255,255,255,.4);font-size:10px;}
+.role-badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:4px;}
+.role-gerant{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;}
+.role-employe{background:rgba(255,255,255,.1);color:rgba(255,255,255,.5);}
+.gerant-banner{background:linear-gradient(135deg,#1e3a5f,#1e293b);border-bottom:1px solid rgba(245,158,11,.3);padding:10px 14px;display:flex;align-items:center;gap:8px;}
+.gerant-banner-icon{font-size:18px;}
+.gerant-banner-text{font-size:11px;color:#fbbf24;font-weight:600;}
+.stat-mini{display:flex;flex-direction:column;gap:4px;background:rgba(255,255,255,.05);border-radius:8px;padding:10px 12px;margin:8px 10px;}
+.stat-mini-row{display:flex;justify-content:space-between;font-size:11px;}
+.stat-mini-label{color:rgba(255,255,255,.4);}
+.stat-mini-val{color:#4ade80;font-weight:700;}
 .btn-out{
   background:none;border:none;cursor:pointer;
   color:rgba(255,255,255,.3);font-size:16px;padding:4px;
@@ -510,33 +520,8 @@ html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--slate);
       </div>
     </div>
 
-    <div class="sb-nav">
-      <div class="sb-section">Principal</div>
-      <div class="nav-item active" data-p="dashboard" onclick="Nav.go('dashboard')">
-        <span class="ico">📊</span> Tableau de bord
-      </div>
-      <div class="nav-item" data-p="saisie" onclick="Nav.go('saisie')">
-        <span class="ico">✏️</span> Saisie des données
-      </div>
-      <div class="nav-item" data-p="incidents" onclick="Nav.go('incidents')">
-        <span class="ico">⚠️</span> Incidents
-      </div>
-
-      <div class="sb-section">Rapports</div>
-      <div class="nav-item" data-p="semaine" onclick="Nav.go('semaine')">
-        <span class="ico">📅</span> Cette semaine
-      </div>
-      <div class="nav-item" data-p="mois" onclick="Nav.go('mois')">
-        <span class="ico">📆</span> Ce mois
-      </div>
-      <div class="nav-item" data-p="annee" onclick="Nav.go('annee')">
-        <span class="ico">📈</span> Cette année
-      </div>
-
-      <div class="sb-section">Équipe</div>
-      <div class="nav-item" data-p="personnel" onclick="Nav.go('personnel')">
-        <span class="ico">👥</span> Personnel
-      </div>
+    <div class="sb-nav" id="sb-nav">
+      <!-- Rempli dynamiquement selon le poste -->
     </div>
 
     <div class="sb-footer">
@@ -650,6 +635,11 @@ html,body{height:100%;font-family:var(--font);font-size:14px;color:var(--slate);
     <div id="page-personnel" class="page" style="display:none">
       <div class="sec-hdr"><h3>👥 Équipe TAFS</h3></div>
       <div id="personnel-wrap"></div>
+    </div>
+
+    <!-- GÉRANT ONLY : GESTION -->
+    <div id="page-gestion" class="page" style="display:none">
+      <div id="gestion-wrap"></div>
     </div>
   </div>
 </div>
@@ -777,11 +767,12 @@ window.Auth={
   },
   _enter(u){
     $('sb-name').textContent=u.prenom+' '+u.nom;
-    $('sb-role').textContent=u.poste;
+    $('sb-role').innerHTML=u.poste+'<br><span class="role-badge '+(u.poste==='Gérant'?'role-gerant':'role-employe')+'">'+u.poste+'</span>';
     $('sb-avt').textContent=ini(u.prenom,u.nom);
     $('top-date').textContent=todayLbl();
     $('screen-auth').classList.remove('active');
     $('screen-app').classList.add('active');
+    Nav.buildNav(u);
     syncStatus();this._listen();Nav.go('dashboard');
     toast('Bienvenue '+u.prenom+' ! 👋','ok');
   },
@@ -803,6 +794,10 @@ window.Auth={
 // ─── NAVIGATION ───
 const TITLES={dashboard:['Tableau de bord','Vue d\'ensemble de la journée'],saisie:['Saisie des données','Entrez les ventes et dépenses par service'],incidents:['Incidents','Problèmes signalés par l\'équipe'],semaine:['Rapport Semaine','Performance des 7 derniers jours'],mois:['Rapport Mensuel','Bilan du mois en cours'],annee:['Rapport Annuel','Performance de l\'année'],personnel:['Équipe TAFS','Liste des membres enregistrés']};
 window.Nav={
+  buildNav(u){
+    const isGerant=u.poste==='Gérant'||u.poste==='Superviseur';
+    $('sb-nav').innerHTML=isGerant?NAV_GERANT:NAV_EMPLOYE;
+  },
   go(p){
     ST.page=p;
     document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active',e.dataset.p===p));
@@ -811,7 +806,7 @@ window.Nav={
     document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.style.display='none';});
     const pg=$('page-'+p);if(pg){pg.classList.add('active');pg.style.display='block';}
     this.closeMenu();
-    switch(p){case'dashboard':DB.render();break;case'saisie':SAISIE.load();break;case'incidents':INC.load();break;case'semaine':case'mois':case'annee':RPT.render(p);break;case'personnel':renderPersonnel();break;}
+    switch(p){case'dashboard':DB.render();break;case'saisie':SAISIE.load();break;case'incidents':INC.load();break;case'semaine':case'mois':case'annee':RPT.render(p);break;case'personnel':renderPersonnel();break;case'gestion':renderGestion();break;}
   },
   toggleMenu(){$('sidebar').classList.toggle('open');$('overlay').classList.toggle('show');},
   closeMenu(){$('sidebar').classList.remove('open');$('overlay').classList.remove('show');}
@@ -1108,6 +1103,72 @@ const RPT={
       <div class="r-section"><div class="r-title">🏪 Top services de l'année</div>${this._tbl(tan.s)}${this._reco(tan.s)}</div>`;
   }
 };
+
+// ─── GESTION (GÉRANT ONLY) ───
+function renderGestion(){
+  const w=$('gestion-wrap');if(!w)return;
+  // Stats globales
+  const allDates=Object.keys(ST.allVentes).sort();
+  const today=todayStr();
+  const tDay=RPT._sum([today]);
+  const tMois=(()=>{const now=new Date();const y=now.getFullYear(),m=now.getMonth();const dm=allDates.filter(d=>{const dd=new Date(d+'T12:00:00');return dd.getFullYear()===y&&dd.getMonth()===m;});return RPT._sum(dm);})();
+  const tAll=RPT._sum(allDates);
+
+  // Dernières saisies par agent
+  const agentStats={};
+  Object.entries(ST.allVentes).forEach(([date,shifts])=>{
+    Object.entries(shifts).forEach(([shift,svcs])=>{
+      const un=svcs._userName||'';
+      if(!un)return;
+      if(!agentStats[un])agentStats[un]={saisies:0,lastDate:'',lastShift:''};
+      agentStats[un].saisies++;
+      if(date>agentStats[un].lastDate){agentStats[un].lastDate=date;agentStats[un].lastShift=shift;}
+    });
+  });
+
+  // Incidents récents
+  const incRecents=ST.allInc.slice(0,5);
+
+  w.innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px">
+      <div class="kpi-card green"><div class="kpi-icon">📅</div><div class="kpi-label">Bénéfice aujourd'hui</div><div class="kpi-value green">${fcfa(tDay.ben)}</div><div class="kpi-sub">Ventes : ${fcfa(tDay.tv)}</div></div>
+      <div class="kpi-card amber"><div class="kpi-icon">📆</div><div class="kpi-label">Bénéfice ce mois</div><div class="kpi-value amber">${fcfa(tMois.ben)}</div><div class="kpi-sub">Marge : ${tMois.mg}%</div></div>
+      <div class="kpi-card blue"><div class="kpi-icon">📈</div><div class="kpi-label">Total cumulé</div><div class="kpi-value" style="color:var(--blue)">${fcfa(tAll.ben)}</div><div class="kpi-sub">Sur ${allDates.length} jours</div></div>
+      <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-label">Membres équipe</div><div class="kpi-value">${ST.allUsers.length}</div><div class="kpi-sub">comptes enregistrés</div></div>
+    </div>
+
+    <div class="r-section" style="margin-bottom:14px">
+      <div class="r-title">👥 Activité de l'équipe</div>
+      ${ST.allUsers.length?`<table class="r-table">
+        <thead><tr><th>Agent</th><th>Poste</th><th>Téléphone</th><th style="text-align:right">Saisies</th><th>Dernière activité</th></tr></thead>
+        <tbody>${ST.allUsers.map(u=>{
+          const key=u.prenom+' '+u.nom;
+          const ag=agentStats[key]||{saisies:0,lastDate:'—',lastShift:'—'};
+          const shiftLbl=ag.lastShift==='matin'?'☀️ Matin':ag.lastShift==='soir'?'🌙 Soir':'—';
+          return`<tr>
+            <td><b>${u.prenom} ${u.nom}</b></td>
+            <td><span style="font-size:11px;background:var(--g3);color:var(--g2);padding:2px 8px;border-radius:20px;font-weight:600">${u.poste}</span></td>
+            <td style="color:var(--g)">📞 ${u.tel}</td>
+            <td style="text-align:right;font-weight:700">${ag.saisies}</td>
+            <td style="font-size:12px;color:var(--muted)">${ag.lastDate!=='—'?fmtDate(ag.lastDate).slice(0,15)+'… '+shiftLbl:'Aucune saisie'}</td>
+          </tr>`;}).join('')}</tbody>
+      </table>`:'<div class="empty"><div class="empty-icon">👥</div><p>Aucun membre enregistré</p></div>'}
+    </div>
+
+    <div class="r-section">
+      <div class="r-title">⚠️ Derniers incidents signalés</div>
+      ${incRecents.length?incRecents.map(i=>`
+        <div style="padding:10px 12px;border-left:3px solid var(--amber);background:var(--amber-bg);border-radius:var(--rs);margin-bottom:8px">
+          <div style="display:flex;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+            <span style="font-size:11px;background:var(--blue-bg);color:var(--blue);padding:2px 7px;border-radius:20px;font-weight:600">${i.type}</span>
+            <span style="font-size:11px;color:var(--muted)">${i.date||''}</span>
+            <span style="font-size:11px;color:var(--amber);font-weight:600">👤 ${i.userName||''}</span>
+          </div>
+          <div style="font-size:13px;color:var(--slate3)">${i.description}</div>
+        </div>`).join(''):'<div class="empty"><div class="empty-icon">✅</div><p>Aucun incident récent</p></div>'}
+    </div>
+  `;
+}
 
 // ─── PERSONNEL ───
 function renderPersonnel(){
