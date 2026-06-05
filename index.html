@@ -793,7 +793,31 @@ window.Auth={
 
 // ─── NAVIGATION ───
 const TITLES={dashboard:['Tableau de bord','Vue d\'ensemble de la journée'],saisie:['Saisie des données','Entrez les ventes et dépenses par service'],incidents:['Incidents','Problèmes signalés par l\'équipe'],semaine:['Rapport Semaine','Performance des 7 derniers jours'],mois:['Rapport Mensuel','Bilan du mois en cours'],annee:['Rapport Annuel','Performance de l\'année'],personnel:['Équipe TAFS','Liste des membres enregistrés']};
+
+// Menus par rôle
+const NAV_GERANT = [
+  '<div class="gerant-banner"><span class="gerant-banner-icon">👑</span><span class="gerant-banner-text">Mode Gérant — Accès complet</span></div>',
+  '<div class="sb-section">Principal</div>',
+  '<div class="nav-item" data-p="dashboard" onclick="Nav.go(\'dashboard\')"><span class="ico">📊</span> Tableau de bord</div>',
+  '<div class="nav-item" data-p="saisie" onclick="Nav.go(\'saisie\')"><span class="ico">✏️</span> Saisie des données</div>',
+  '<div class="nav-item" data-p="incidents" onclick="Nav.go(\'incidents\')"><span class="ico">⚠️</span> Incidents</div>',
+  '<div class="sb-section">Rapports</div>',
+  '<div class="nav-item" data-p="semaine" onclick="Nav.go(\'semaine\')"><span class="ico">📅</span> Cette semaine</div>',
+  '<div class="nav-item" data-p="mois" onclick="Nav.go(\'mois\')"><span class="ico">📆</span> Ce mois</div>',
+  '<div class="nav-item" data-p="annee" onclick="Nav.go(\'annee\')"><span class="ico">📈</span> Cette année</div>',
+  '<div class="sb-section">Administration</div>',
+  '<div class="nav-item" data-p="personnel" onclick="Nav.go(\'personnel\')"><span class="ico">👥</span> Personnel</div>',
+  '<div class="nav-item" data-p="gestion" onclick="Nav.go(\'gestion\')"><span class="ico">⚙️</span> Gestion &amp; Stats</div>',
+].join('');
+
+const NAV_EMPLOYE = [
+  '<div class="sb-section">Mon espace</div>',
+  '<div class="nav-item" data-p="dashboard" onclick="Nav.go(\'dashboard\')"><span class="ico">📊</span> Tableau de bord</div>',
+  '<div class="nav-item" data-p="saisie" onclick="Nav.go(\'saisie\')"><span class="ico">✏️</span> Saisie du jour</div>',
+  '<div class="nav-item" data-p="incidents" onclick="Nav.go(\'incidents\')"><span class="ico">⚠️</span> Signaler un incident</div>',
+].join('');
 window.Nav={
+  setActive(p){document.querySelectorAll('.nav-item').forEach(e=>e.classList.toggle('active',e.dataset&&e.dataset.p===p));},
   buildNav(u){
     const isGerant=u.poste==='Gérant'||u.poste==='Superviseur';
     $('sb-nav').innerHTML=isGerant?NAV_GERANT:NAV_EMPLOYE;
@@ -805,6 +829,7 @@ window.Nav={
     $('page-title').textContent=t[0];$('page-sub').textContent=t[1];
     document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.style.display='none';});
     const pg=$('page-'+p);if(pg){pg.classList.add('active');pg.style.display='block';}
+    this.setActive(p);
     this.closeMenu();
     switch(p){case'dashboard':DB.render();break;case'saisie':SAISIE.load();break;case'incidents':INC.load();break;case'semaine':case'mois':case'annee':RPT.render(p);break;case'personnel':renderPersonnel();break;case'gestion':renderGestion();break;}
   },
